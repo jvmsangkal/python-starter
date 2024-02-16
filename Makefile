@@ -16,28 +16,28 @@ clean: ## Remove general artifact files
 format: dev ## Scan and format all files with pre-commit
 	venv/bin/pre-commit run --all-files
 
-venv: ## Create virtual environment if venv directory not present
-	python -m venv venv
-	./venv/bin/python -m pip install pip-tools
+.venv: ## Create virtual environment if venv directory not present
+	uv venv
+	source .venv/bin/activate
 
-requirements.txt: venv ## Generate requirements for release
-	venv/bin/pip-compile -o requirements.txt pyproject.toml
+requirements.txt: .venv ## Generate requirements for release
+	uv pip compile pyproject.toml -o requirements.txt
 
-dev-requirements.txt: venv ## Generate requirements for dev
-	venv/bin/pip-compile --extra dev -o dev-requirements.txt pyproject.toml
+dev-requirements.txt: .venv ## Generate requirements for dev
+	uv pip compile --extra dev -o dev-requirements.txt pyproject.toml
 
 release: requirements.txt ## Install dependencies for release
-	venv/bin/pip-sync requirements.txt
+	uv pip sync requirements.txt
 
 dev: dev-requirements.txt  ## Install dependencies for dev
-	venv/bin/pip-sync dev-requirements.txt
-	venv/bin/pre-commit install
+	uv pip sync dev-requirements.txt
+	.venv/bin/pre-commit install
 
 run: dev ## Run with dev dependencies
-	./venv/bin/python -m src.py_starter.__init__
+	.venv/bin/python -m src.py_starter.__init__
 
 test: dev ## Run all tests with coverage
-	venv/bin/pytest tests --cov=src -v --cov-report=term-missing
+	.venv/bin/pytest tests --cov=src -v --cov-report=term-missing
 
 upgrade-package: dev-requirements.txt ## https://pip-tools.readthedocs.io/en/latest/#updating-requirements
-	./venv/bin/pip-compile --upgrade-package $(ARGS)
+	uv pip compile --upgrade-package $(ARGS)
