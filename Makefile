@@ -20,24 +20,15 @@ format: dev ## Scan and format all files with pre-commit
 	uv venv
 	source .venv/bin/activate
 
-requirements.txt: .venv ## Generate requirements for release
-	uv pip compile pyproject.toml -o requirements.txt
-
-dev-requirements.txt: .venv ## Generate requirements for dev
-	uv pip compile --extra dev -o dev-requirements.txt pyproject.toml
-
-release: requirements.txt ## Install dependencies for release
-	uv pip sync requirements.txt
+lock: .venv ## Generate requirements for release
+	uv lock
 
 dev: dev-requirements.txt  ## Install dependencies for dev
 	uv pip sync dev-requirements.txt
 	.venv/bin/pre-commit install
 
 run: dev ## Run with dev dependencies
-	.venv/bin/python -m src.py_starter.__init__
+	uv run -m src.py_starter.__init__
 
 test: dev ## Run all tests with coverage
-	.venv/bin/pytest tests --cov=src -v --cov-report=term-missing
-
-upgrade-package: dev-requirements.txt ## https://pip-tools.readthedocs.io/en/latest/#updating-requirements
-	uv pip compile --upgrade-package $(ARGS)
+	uv run pytest tests --cov=src -v --cov-report=term-missing
